@@ -70,29 +70,48 @@ async function loadAvailableModels() {
         
     } catch (error) {
         console.error('Error loading models:', error);
-        document.querySelector('.model-selection').innerHTML = 
+        document.querySelector('.model-selection-grid').innerHTML = 
             '<p class="error">Failed to load models. Please try again.</p>';
     }
 }
 
+// Toggle options panel
+function toggleOptions() {
+    const panel = document.getElementById('options-panel');
+    panel.classList.toggle('active');
+}
+
+// Toggle user menu
+function toggleUserMenu() {
+    const menu = document.getElementById('user-menu');
+    const isVisible = menu.style.display === 'block';
+    menu.style.display = isVisible ? 'none' : 'block';
+}
+
+// Close user menu when clicking outside
+document.addEventListener('click', (e) => {
+    const userIcon = document.querySelector('.user-icon');
+    const userMenu = document.getElementById('user-menu');
+    if (userMenu && !userIcon.contains(e.target)) {
+        userMenu.style.display = 'none';
+    }
+});
+
 // Render model selection
 function renderModelSelection() {
-    const container = document.querySelector('.model-selection');
+    const container = document.querySelector('.model-selection-grid');
     
     if (availableModels.length === 0) {
         container.innerHTML = '<p>No models available</p>';
         return;
     }
     
-    // Show popular models or first 20 models
-    const modelsToShow = availableModels.slice(0, 20);
+    // Show first 50 models (increased from 20)
+    const modelsToShow = availableModels.slice(0, 50);
     
     container.innerHTML = modelsToShow.map(model => `
         <div class="model-option" onclick="toggleModel('${model.id}', '${model.name}')">
-            <div style="font-weight: 500;">${model.name}</div>
-            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
-                ${model.id}
-            </div>
+            ${model.name}
         </div>
     `).join('');
 }
@@ -273,51 +292,33 @@ function displayResults(data) {
     container.innerHTML = data.responses.map(response => {
         if (response.error) {
             return `
-                <div class="model-response">
-                    <div class="model-response-header">
-                        <div class="model-name">${response.model}</div>
-                    </div>
-                    <div class="model-error">
+                <div class="model-card">
+                    <div class="model-card-title">Results for ${response.model}</div>
+                    <div class="model-card-response">
                         <strong>Error:</strong> ${response.error}
+                    </div>
+                    <div class="model-card-footer">
+                        <div>
+                            <div class="model-card-name">${response.model}</div>
+                            <div class="model-card-details">Error occurred</div>
+                        </div>
                     </div>
                 </div>
             `;
         }
         
         return `
-            <div class="model-response">
-                <div class="model-response-header">
-                    <div class="model-name">
-                        ${response.model}
-                        <button class="info-btn" onclick="showDetailedInfo('${response.model}', ${JSON.stringify(response).replace(/'/g, "&apos;")})">ℹ️</button>
+            <div class="model-card">
+                <div class="model-card-title">Results for ${response.model}</div>
+                <div class="model-card-response">${response.response}</div>
+                <div class="model-card-footer">
+                    <div>
+                        <div class="model-card-name">${response.model.split('/').pop()}</div>
+                        <div class="model-card-details">${response.tokens_used} tokens • ${response.time_taken.toFixed(2)}s</div>
                     </div>
-                    <div class="model-response-actions">
-                        <button class="btn btn-secondary" onclick="retryModel('${response.model}')">
-                            🔄 Retry
-                        </button>
-                        <button class="btn btn-secondary" onclick="downloadSingle('${response.model}')">
-                            ⬇️
-                        </button>
-                    </div>
-                </div>
-                <div class="model-response-content">${response.response}</div>
-                <div class="model-metrics">
-                    <div class="metric">
-                        <div class="metric-label">Tokens</div>
-                        <div class="metric-value">${response.tokens_used}</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Prompt</div>
-                        <div class="metric-value">${response.prompt_tokens}</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Completion</div>
-                        <div class="metric-value">${response.completion_tokens}</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Time (s)</div>
-                        <div class="metric-value">${response.time_taken.toFixed(2)}</div>
-                    </div>
+                    <button class="model-card-info-btn" onclick="showDetailedInfo('${response.model}', ${JSON.stringify(response).replace(/'/g, "&apos;")})">
+                        ℹ
+                    </button>
                 </div>
             </div>
         `;

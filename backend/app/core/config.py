@@ -1,13 +1,25 @@
 """
 Application configuration management using pydantic-settings
 """
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 import os
+from pathlib import Path
+
+
+# Get project root directory (2 levels up from this file)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+ENV_FILE = PROJECT_ROOT / ".env"
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
+    
+    model_config = SettingsConfigDict(
+        env_file=str(ENV_FILE),
+        case_sensitive=True,
+        extra='ignore'
+    )
     
     # Application
     APP_NAME: str = "Prompt Optimizer"
@@ -47,10 +59,6 @@ class Settings(BaseSettings):
     def allowed_extensions_list(self) -> List[str]:
         """Convert comma-separated extensions to list"""
         return [ext.strip() for ext in self.ALLOWED_EXTENSIONS.split(",")]
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
 
 
 # Create settings instance

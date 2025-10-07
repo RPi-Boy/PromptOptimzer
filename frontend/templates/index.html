@@ -7,86 +7,76 @@
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
-    <!-- Navigation Header -->
-    <header class="navbar">
-        <div class="navbar-brand">
-            <h1>Prompt Optimizer</h1>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="user-icon" onclick="toggleUserMenu()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+            </svg>
+            <div id="user-menu" class="user-menu">
+                <div id="username-display"></div>
+                <button onclick="logout()" class="btn btn-small">Logout</button>
+            </div>
         </div>
-        <div class="navbar-user">
-            <span id="username-display"></span>
-            <button onclick="logout()" class="btn btn-secondary">Logout</button>
-        </div>
-    </header>
+    </div>
 
     <!-- Main Container -->
-    <div class="container">
-        <!-- Left Panel: Upload & Prompt Configuration -->
-        <div class="left-panel">
-            <div class="card">
-                <h2>Upload Questions</h2>
-                <div class="upload-section">
-                    <input type="file" id="file-upload" accept=".json,.txt" hidden>
-                    <button onclick="document.getElementById('file-upload').click()" class="btn btn-primary">
-                        📁 Upload File
-                    </button>
-                    <p class="upload-hint">Upload JSON or TXT file with questions</p>
-                    <div id="upload-status" class="status-message"></div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2>System Prompt</h2>
+    <div class="main-container">
+        <!-- Top Section -->
+        <div class="top-section">
+            <div class="system-prompt-box">
                 <textarea 
                     id="system-prompt" 
-                    placeholder="Enter your system prompt here..."
-                    rows="6"
+                    placeholder="Enter System Prompt"
+                    rows="5"
                 ></textarea>
             </div>
+            <div class="action-buttons-right">
+                <input type="file" id="file-upload" accept=".json,.txt" hidden>
+                <button onclick="document.getElementById('file-upload').click()" class="btn btn-outline">
+                    Upload questions
+                </button>
+                <button id="options-btn" onclick="toggleOptions()" class="btn btn-outline">
+                    Options
+                </button>
+                <div id="upload-status" class="status-message"></div>
+            </div>
+        </div>
 
-            <div class="card">
-                <h2>Select Question</h2>
+        <!-- Question Display -->
+        <div class="question-display">
+            <input 
+                type="text" 
+                id="selected-question" 
+                placeholder="Show selected question"
+                readonly
+            />
+        </div>
+
+        <!-- Options Panel (Hidden by default) -->
+        <div id="options-panel" class="options-panel">
+            <div class="options-content">
+                <h3>Select Question</h3>
                 <select id="question-select" disabled>
                     <option value="">First upload a file...</option>
                 </select>
-                <textarea 
-                    id="selected-question" 
-                    placeholder="Selected question will appear here..."
-                    rows="4"
-                    readonly
-                ></textarea>
-            </div>
-
-            <div class="card">
-                <h2>Select Models (up to 3)</h2>
-                <div id="model-selection" class="model-selection">
+                
+                <h3>Select Models (up to 3)</h3>
+                <div id="model-selection" class="model-selection-grid">
                     <p class="loading">Loading available models...</p>
                 </div>
                 <div id="selected-models-display" class="selected-models"></div>
-            </div>
-
-            <div class="action-buttons">
+                
                 <button id="send-btn" onclick="runTest()" class="btn btn-primary btn-large" disabled>
                     🚀 Run Test
                 </button>
             </div>
         </div>
 
-        <!-- Right Panel: Results -->
-        <div class="right-panel">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Model Responses</h2>
-                    <button id="download-all-btn" onclick="downloadAll()" class="btn btn-secondary" disabled>
-                        ⬇️ Download All
-                    </button>
-                </div>
-                
-                <div id="results-container" class="results-container">
-                    <div class="empty-state">
-                        <p>Run a test to see model responses here</p>
-                    </div>
-                </div>
-            </div>
+        <!-- Results Section -->
+        <div id="results-container" class="results-grid">
+            <!-- Results will be inserted here -->
         </div>
     </div>
 

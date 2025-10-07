@@ -1,7 +1,7 @@
-I want to make a promp optimization website for my company to work internally.
+I want to make a prompt optimization website.
 The website should have the following features:
-1. Login for internal employees only.
-2. A dashboard to upload the test questions as json or txt file. This file will have all the questions in it.
+1. Login for users.
+2. A button that allows users to upload the test questions as json or txt file. This file will have all the questions in it.
 3. There should be a text window to enter a system prompt. 
 4. There should be an options button that will let the user select a question from the uploaded file.
 5. The selected question should be shown in a text field. 
@@ -22,3 +22,6 @@ You can decide on the colours, modify the layout, add or remove features, but th
 I want you to make the website user friendly and easy to navigate.
 On the backend you can use python and any other language you want. Use best coding practices and make the code easy to read and maintain.
 Make sure it is scalable. Make a .env file to store the API keys and other sensitive information and .env.example file to store the example values so if I upload it to github it doesn't get leaked. Make sure you start a git local repository, maintain a documentation folder and a README.md file. Create a .gitignore file to ignore the .env file and other sensitive files/system files. Use virtual environment to manage dependencies. Use best practices for code quality and maintainability. Use best practices for security. Use best practices for performance. 
+
+I want you to make an elaborate plan with steps to implement this website, Then follow this plan.
+You can use any tools you want to implement this website.
