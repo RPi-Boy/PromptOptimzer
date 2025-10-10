@@ -17,6 +17,7 @@ from ..schemas.prompt import (
     FileUploadResponse,
     ModelResponse
 )
+from ..schemas.user import ApiKeyUpdate
 from ..services.openrouter import openrouter_service
 from ..services.file_handler import file_handler_service
 from ..api.auth import get_current_user_dependency
@@ -155,6 +156,25 @@ async def get_available_models(
             for model in models
         ]
     }
+
+
+@router.post("/update-api-key")
+async def update_api_key(
+    api_key_update: ApiKeyUpdate,
+    current_user: User = Depends(get_current_user_dependency)
+):
+    """
+    Update OpenRouter API key for the current session
+    
+    Args:
+        api_key_update: New API key
+        current_user: Authenticated user
+        
+    Returns:
+        Success message
+    """
+    openrouter_service.update_api_key(api_key_update.api_key)
+    return {"message": "API key updated successfully"}
 
 
 @router.get("/download/{request_id}")

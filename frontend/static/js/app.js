@@ -10,6 +10,18 @@ let selectedModels = [];
 let availableModels = [];
 let currentRequestId = null;
 
+// XSS Protection: Escape HTML
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 // Check authentication on page load
 window.addEventListener('DOMContentLoaded', async () => {
     if (!token) {
@@ -289,17 +301,17 @@ async function runTest() {
 function displayResults(data) {
     const container = document.getElementById('results-container');
     
-    container.innerHTML = data.responses.map(response => {
+    container.innerHTML = data.responses.map((response, index) => {
         if (response.error) {
             return `
-                <div class="model-card">
-                    <div class="model-card-title">Results for ${response.model}</div>
+                <div class="model-card" id="card-${index}">
+                    <div class="model-card-title">Results for ${escapeHtml(response.model)}</div>
                     <div class="model-card-response">
-                        <strong>Error:</strong> ${response.error}
+                        <strong>Error:</strong> ${escapeHtml(response.error)}
                     </div>
                     <div class="model-card-footer">
                         <div>
-                            <div class="model-card-name">${response.model}</div>
+                            <div class="model-card-name">${escapeHtml(response.model)}</div>
                             <div class="model-card-details">Error occurred</div>
                         </div>
                     </div>
@@ -308,21 +320,71 @@ function displayResults(data) {
         }
         
         return `
-            <div class="model-card">
-                <div class="model-card-title">Results for ${response.model}</div>
-                <div class="model-card-response">${response.response}</div>
+            <div class="model-card" id="card-${index}">
+                <div class="model-card-title">Results for ${escapeHtml(response.model)}</div>
+                <div class="model-card-response">${escapeHtml(response.response)}</div>
                 <div class="model-card-footer">
                     <div>
-                        <div class="model-card-name">${response.model.split('/').pop()}</div>
+                        <div class="model-card-name">${escapeHtml(response.model.split('/').pop())}</div>
                         <div class="model-card-details">${response.tokens_used} tokens • ${response.time_taken.toFixed(2)}s</div>
                     </div>
-                    <button class="model-card-info-btn" onclick="showDetailedInfo('${response.model}', ${JSON.stringify(response).replace(/'/g, "&apos;")})">
+                    <button class="model-card-info-btn" onclick='expandCard(${index}, ${JSON.stringify(response)})'>
                         ℹ
                     </button>
                 </div>
             </div>
         `;
     }).join('');
+    
+    // Store responses for expansion
+    window.currentResponses = data.responses;
+}
+
+// Expand card to show full details
+function expandCard(index, responseData) {
+    const modal = document.getElementById('info-modal');
+    const title = document.getElementById('modal-title');
+    const body = document.getElementById('modal-body');
+    
+    title.textContent = `${responseData.model}`;
+    
+    body.innerHTML = `
+        <div style="margin-bottom: 1.5rem;">
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Response</h3>
+            <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; white-space: pre-wrap; max-height: 400px; overflow-y: auto; color: var(--text-primary);">
+                ${escapeHtml(responseData.response)}
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; color: var(--text-primary);">
+            <div>
+                <strong>Model Name:</strong> ${escapeHtml(responseData.model)}
+            </div>
+            <div>
+                <strong>Time Taken:</strong> ${responseData.time_taken.toFixed(3)}s
+            </div>
+            <div>
+                <strong>Total Tokens:</strong> ${responseData.tokens_used}
+            </div>
+            <div>
+                <strong>Prompt Tokens:</strong> ${responseData.prompt_tokens}
+            </div>
+            <div>
+                <strong>Completion Tokens:</strong> ${responseData.completion_tokens}
+            </div>
+            ${responseData.finish_reason ? `
+            <div>
+                <strong>Finish Reason:</strong> ${escapeHtml(responseData.finish_reason)}
+            </div>
+            ` : ''}
+            ${responseData.cost ? `
+            <div>
+                <strong>Cost:</strong> $${responseData.cost}
+            </div>
+            ` : ''}
+        </div>
+    `;
+    
+    modal.classList.add('active');
 }
 
 // Retry a single model
@@ -374,53 +436,63 @@ async function retryModel(modelId) {
     }
 }
 
-// Show detailed info modal
-function showDetailedInfo(modelName, responseData) {
-    const modal = document.getElementById('info-modal');
-    const title = document.getElementById('modal-title');
-    const body = document.getElementById('modal-body');
-    
-    title.textContent = `Detailed Information: ${modelName}`;
-    
-    body.innerHTML = `
-        <div style="margin-bottom: 1.5rem;">
-            <h3 style="margin-bottom: 0.5rem;">Response</h3>
-            <div style="background: #f5f5f5; padding: 1rem; border-radius: 6px; white-space: pre-wrap; max-height: 300px; overflow-y: auto;">
-                ${responseData.response}
-            </div>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-            <div>
-                <strong>Total Tokens:</strong> ${responseData.tokens_used}
-            </div>
-            <div>
-                <strong>Prompt Tokens:</strong> ${responseData.prompt_tokens}
-            </div>
-            <div>
-                <strong>Completion Tokens:</strong> ${responseData.completion_tokens}
-            </div>
-            <div>
-                <strong>Time Taken:</strong> ${responseData.time_taken.toFixed(3)}s
-            </div>
-            ${responseData.finish_reason ? `
-            <div>
-                <strong>Finish Reason:</strong> ${responseData.finish_reason}
-            </div>
-            ` : ''}
-            ${responseData.cost ? `
-            <div>
-                <strong>Cost:</strong> $${responseData.cost}
-            </div>
-            ` : ''}
-        </div>
-    `;
-    
-    modal.classList.add('active');
+
+// Close info modal
+function closeInfoModal() {
+    document.getElementById('info-modal').classList.remove('active');
 }
 
-// Close modal
-function closeModal() {
-    document.getElementById('info-modal').classList.remove('active');
+// Show API key modal
+function showApiKeyModal() {
+    document.getElementById('api-key-modal').classList.add('active');
+    document.getElementById('user-menu').style.display = 'none';
+}
+
+// Close API key modal
+function closeApiKeyModal() {
+    document.getElementById('api-key-modal').classList.remove('active');
+    document.getElementById('new-api-key').value = '';
+    document.getElementById('api-key-status').textContent = '';
+    document.getElementById('api-key-status').className = 'status-message';
+}
+
+// Update API key
+async function updateApiKey() {
+    const newApiKey = document.getElementById('new-api-key').value.trim();
+    const statusDiv = document.getElementById('api-key-status');
+    
+    if (!newApiKey) {
+        statusDiv.textContent = 'Please enter an API key';
+        statusDiv.className = 'status-message error active';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/prompt/update-api-key`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ api_key: newApiKey })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to update API key');
+        }
+        
+        statusDiv.textContent = '✓ API key updated successfully!';
+        statusDiv.className = 'status-message success active';
+        
+        setTimeout(() => {
+            closeApiKeyModal();
+        }, 2000);
+        
+    } catch (error) {
+        statusDiv.textContent = `✗ ${error.message}`;
+        statusDiv.className = 'status-message error active';
+    }
 }
 
 // Download all results
@@ -521,8 +593,14 @@ function createModelCard(response) {
 
 // Close modal when clicking outside
 window.onclick = function(event) {
-    const modal = document.getElementById('info-modal');
-    if (event.target === modal) {
-        closeModal();
+    const infoModal = document.getElementById('info-modal');
+    const apiKeyModal = document.getElementById('api-key-modal');
+    
+    if (event.target === infoModal) {
+        closeInfoModal();
+    }
+    
+    if (event.target === apiKeyModal) {
+        closeApiKeyModal();
     }
 }

@@ -4,7 +4,9 @@ OpenRouter API service for interacting with multiple LLM models
 import httpx
 import asyncio
 import time
-from typing import List, Dict, Any
+import json
+from pathlib import Path
+from typing import List, Dict, Any, Optional
 from ..core.config import settings
 from ..schemas.prompt import ModelResponse
 
@@ -15,12 +17,21 @@ class OpenRouterService:
     def __init__(self):
         self.api_key = settings.OPENROUTER_API_KEY
         self.base_url = settings.OPENROUTER_BASE_URL
+        self._update_headers()
+    
+    def _update_headers(self):
+        """Update headers with current API key"""
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
             "HTTP-Referer": "http://localhost:8000",
             "X-Title": settings.APP_NAME
         }
+    
+    def update_api_key(self, new_api_key: str):
+        """Update the API key for this session"""
+        self.api_key = new_api_key
+        self._update_headers()
     
     async def call_model(
         self, 
@@ -122,13 +133,28 @@ class OpenRouterService:
         responses = await asyncio.gather(*tasks)
         return list(responses)
     
-    async def get_available_models(self) -> List[Dict[str, Any]]:
+    async def get_available_models(self, use_static_list: bool = True) -> List[Dict[str, Any]]:
         """
-        Fetch available models from OpenRouter
+        Fetch available models from OpenRouter or use static list
+        
+        Args:
+            use_static_list: If True, load from static model_list.json file
         
         Returns:
             List of available models with their metadata
         """
+        if use_static_list:
+            # Load from static model list file
+            model_list_path = Path(__file__).parent.parent.parent / "models" / "model_list.json"
+            try:
+                if model_list_path.exists():
+                    with open(model_list_path, 'r') as f:
+                        models = json.load(f)
+                        return models
+            except Exception as e:
+                print(f"Error loading static model list: {e}")
+        
+        # Fallback to fetching from OpenRouter API
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.get(

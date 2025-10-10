@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  prompt-optimizer:
+    build: .
+    container_name: prompt-optimizer
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=Prompt Optimizer
+      - DEBUG=False
+      - HOST=0.0.0.0
+      - PORT=8000
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+      - ./prompt_optimizer.db:/app/prompt_optimizer.db
+    restart: unless-stopped
+    networks:
+      - prompt-optimizer-network
+
+networks:
+  prompt-optimizer-network:
+    driver: bridge

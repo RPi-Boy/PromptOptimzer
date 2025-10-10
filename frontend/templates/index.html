@@ -16,6 +16,7 @@
             </svg>
             <div id="user-menu" class="user-menu">
                 <div id="username-display"></div>
+                <button onclick="showApiKeyModal()" class="btn btn-small">Update API Key</button>
                 <button onclick="logout()" class="btn btn-small">Logout</button>
             </div>
         </div>
@@ -83,9 +84,23 @@
     <!-- Modal for Detailed Response Info -->
     <div id="info-modal" class="modal">
         <div class="modal-content">
-            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <span class="modal-close" onclick="closeInfoModal()">&times;</span>
             <h2 id="modal-title"></h2>
             <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- API Key Update Modal -->
+    <div id="api-key-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeApiKeyModal()">&times;</span>
+            <h2>Update OpenRouter API Key</h2>
+            <div class="form-group">
+                <label for="new-api-key">API Key:</label>
+                <input type="password" id="new-api-key" placeholder="Enter your OpenRouter API key">
+            </div>
+            <div id="api-key-status" class="status-message"></div>
+            <button onclick="updateApiKey()" class="btn btn-primary">Update Key</button>
         </div>
     </div>
 

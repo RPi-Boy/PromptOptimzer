@@ -40,3 +40,8 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     """Schema for token data"""
     username: Optional[str] = None
+
+
+class ApiKeyUpdate(BaseModel):
+    """Schema for updating OpenRouter API key"""
+    api_key: str = Field(..., min_length=10)

@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Environment
+.env
+
+# Database (will be created in container)
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads (will be mounted as volume)
+uploads/*
+
+# Documentation
+*.md
+docs/
+*.txt
+!requirements.txt
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Other
+*.log
+run.bat
+run.sh
+image.png
